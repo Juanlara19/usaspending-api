@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import Count, F
 from usaspending_api.awards.models import TransactionNormalized
 from usaspending_api.awards.models import Subaward
 
@@ -16,13 +16,19 @@ def find_related_legal_entities(transactions):
         .annotate(transaction_count=Count('id'))
         .values_list('recipient_id', 'transaction_count')
     )
-    subaward_count = (
+    recipients_in_subaward = (
         Subaward.objects.filter(prime_recipient__in=related_le_ids)
-        .values_list("prime_recipient_id", flat=True)
+        .annotate(recipient_id=F("prime_recipient_id"))
+        .values_list("recipient_id", flat=True)
     )
 
     tn_count_mapping = dict(tn_count)
     tn_count_filtered_mapping = dict(tn_count_filtered)
     # only delete legal entities if and only if all their transactions are deleted
-    delete_les = list(dict(tn_count_mapping.items() & tn_count_filtered_mapping.items())) - subaward_count
-    return delete_les
+    delete_les = set(dict(tn_count_mapping.items() & tn_count_filtered_mapping.items()))
+    print("---------------------------------------------------")
+    print(delete_les)
+    print("Deleting the subaward ones")
+    delete_les -= set(recipients_in_subaward)
+    print(delete_les)
+    return list(delete_les)

@@ -209,9 +209,9 @@ class Command(BaseCommand):
                 ids_to_upsert = get_fabs_transaction_ids(submission_ids, afa_ids, start_datetime, end_datetime)
 
             update_award_ids = delete_fabs_transactions(ids_to_delete, do_not_log_deletions)
-            upsert_fabs_transactions(ids_to_upsert, update_award_ids)
+        #     upsert_fabs_transactions(ids_to_upsert, update_award_ids)
 
-        if is_incremental_load:
-            update_last_load_date("fabs", processing_start_datetime)
+        # if is_incremental_load:
+        #     update_last_load_date("fabs", processing_start_datetime)
 
         logger.info("FABS UPDATE FINISHED!")
