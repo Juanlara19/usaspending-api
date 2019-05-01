@@ -24,7 +24,10 @@ def geocode_filter_locations(scope, values, use_matview=False):
         state_qs = Q()
 
         for state_zip_key, state_values in state_zip.items():
-            if state_zip_key == 'zip':
+            if state_zip_key == "city":
+                print("==============================")
+                print(state_values)
+            elif state_zip_key == 'zip':
                 state_inner_qs = Q(**{q_str.format(scope, 'zip5') + '__in': state_values})
             else:
                 state_inner_qs = Q(**{q_str.format(scope, 'state_code') + '__exact': state_zip_key})
@@ -65,11 +68,17 @@ def create_nested_object(values):
         if 'zip' in v and not nested_locations[v['country']].get('zip'):
             nested_locations[v['country']]['zip'] = []
 
+        if 'city' in v and not nested_locations[v['country']].get('city'):
+            nested_locations[v['country']]['city'] = []
+
         # Second level of filtering is zip and state
         # Requests must have a country+zip or country+state combination
         if 'zip' in v:
             # Appending zips so we don't overwrite
             nested_locations[v['country']]['zip'].append(v['zip'])
+
+        if 'city' in v:
+            nested_locations[v['country']]['city'].append(v['city'])
 
         # If we have a state, add it to the list
         if 'state' in v and nested_locations[v['country']].get(v['state']) is None:
