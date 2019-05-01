@@ -277,8 +277,8 @@ def es_data_loader(client, fetch_jobs, done_jobs, config):
             if os.path.exists(job.csv):
                 os.remove(job.csv)
         else:
-            printf({"msg": "No Job. Sleeping 45s", "f": "ES Ingest"})
-            sleep(45)
+            printf({"msg": "No Job. Sleeping 5s", "f": "ES Ingest"})
+            sleep(5)
 
     printf({"msg": "Completed Elasticsearch data load", "f": "ES Ingest"})
     return
