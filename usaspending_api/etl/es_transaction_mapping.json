@@ -235,7 +235,16 @@
           "type": "text"
         },
         "pop_city_name": {
-          "type": "text"
+          "type": "text",
+          "fields": {
+            "suggest": {
+              "max_input_length": 50,
+              "analyzer": "simple",
+              "preserve_position_increments": true,
+              "type": "completion",
+              "preserve_separators": true
+            }
+          }
         },
 
         "recipient_location_country_code": {
@@ -260,7 +269,16 @@
           "type": "text"
         },
         "recipient_location_city_name": {
-          "type": "text"
+          "type": "text",
+          "fields": {
+            "suggest": {
+              "max_input_length": 50,
+              "analyzer": "simple",
+              "preserve_position_increments": true,
+              "type": "completion",
+              "preserve_separators": true
+            }
+          }
         },
         "type": {
           "type": "keyword",
