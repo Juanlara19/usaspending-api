@@ -71,6 +71,20 @@ class CityAutocompleteViewSet(APIDocumentationView):
         #     }
         # }
 
+        # Search both fields for exact matches
+        # POST city/_search
+        # {
+        #   "query": {
+        #     "multi_match": {
+        #       "query": "herndon",
+        #       "fields": [
+        #         "pop_city_name",
+        #         "recipient_location_city_name"
+        #       ]
+        #     }
+        #   }
+        # }
+
         response = OrderedDict(
             [("params", request.GET), ("query", query), ("search-time", 0), ("total-hits", 0), ("results", [])]
         )
