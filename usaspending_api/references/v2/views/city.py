@@ -35,23 +35,23 @@ class CityAutocompleteViewSet(APIDocumentationView):
 
         search_text = preprocess(search_text)
         if method == "wildcard":
-            query = {
-                "_source": ["recipient_location_city_name", "recipient_location_state_code", "pop_city_name", "pop_state_code"],
-                "size": limit,
-                "query": {
-                    "dis_max": {
-                        "queries": [
-                            {"query_string": {"wildcard": {"recipient_location_city_name": {"value": search_text + "*"}}}},
-                            {"query_string": {"wildcard": {"pop_city_name": {"value": search_text + "*"}}}},
-                        ]
-                    }
-                }
-            }
             # query = {
-            #     "_source": ["recipient_location_city_name", "pop_city_name"],
+            #     "_source": ["recipient_location_city_name", "recipient_location_state_code", "pop_city_name", "pop_state_code"],
             #     "size": limit,
-            #     "query": {"wildcard": {"recipient_location_city_name": {"value": search_text + "*"}}},
+            #     "query": {
+            #         "dis_max": {
+            #             "queries": [
+            #                 {"query_string": {"wildcard": {"recipient_location_city_name": {"value": search_text + "*"}}}},
+            #                 {"query_string": {"wildcard": {"pop_city_name": {"value": search_text + "*"}}}},
+            #             ]
+            #         }
+            #     }
             # }
+            query = {
+                "_source": ["recipient_location_city_name", "pop_city_name"],
+                "size": limit,
+                "query": {"wildcard": {"recipient_location_city_name": {"value": search_text + "*"}}},
+            }
         elif method == "fuzzy":
             query = {
                 "_source": ["recipient_location_city_name", "pop_city_name"],
