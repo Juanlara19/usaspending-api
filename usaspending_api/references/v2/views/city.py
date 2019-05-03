@@ -50,13 +50,35 @@ class CityAutocompleteViewSet(APIDocumentationView):
             query = {
                 "_source": ["recipient_location_city_name", "pop_city_name"],
                 "size": limit,
-                "query": {"wildcard": {"recipient_location_city_name": {"value": search_text + "*"}}},
+                "query": {"query_string": {
+                  "query":"{}*".format(search_text),
+                  "fields":["recipient_location_city_name", "pop_city_name"]
+                  }
+                },
+                "highlight": {
+                    "fields": {
+                        "recipient_location_city_name":{},
+                        "pop_city_name":{}
+                    }
+                }
             }
         elif method == "fuzzy":
             query = {
-                "_source": ["recipient_location_city_name", "pop_city_name"],
+                "_source": ["recipient_location_city_name", "pop_city_name", "award_id"],
                 "size": limit,
-                "query": {"fuzzy": {"recipient_location_city_name": {"value": search_text, "prefix_length": 3}}},
+                "query": {
+                  "query_string": {
+                    "query":"{}~".format(search_text),
+                    "fields":["recipient_location_city_name", "pop_city_name"],
+                    "fuzzy_prefix_length" : 1
+                  }
+                },
+                "highlight": {
+                    "fields": {
+                        "recipient_location_city_name":{},
+                        "pop_city_name":{}
+                    }
+                }
             }
 
         # https://www.elastic.co/guide/en/elasticsearch/reference/6.1/search-suggesters-completion.html
@@ -86,15 +108,20 @@ class CityAutocompleteViewSet(APIDocumentationView):
         # }
 
         response = OrderedDict(
-            [("params", request.GET), ("query", query), ("search-time", 0), ("total-hits", 0), ("results", [])]
+            [("params", request.GET), ("query", query), ("search-time", 0), ("total-hits", 0), ("terms", [])]
         )
 
         start_time = perf_counter()
 
-        hits = es_client_query(index=TRANSACTIONS_INDEX_ROOT, body=query, retries=10)
+        hits = es_client_query(index="city-search-v1", body=query, retries=10)
         if hits:
             response["total-hits"] = hits["hits"]["total"]
-            response["results"] = hits["hits"]["hits"][:limit]
-
+            results = hits["hits"]["hits"]
+            terms = []
+            for result in results:
+                for matched_field, _ in result['highlight'].items():
+                    terms.append(result["_source"][matched_field])
+            terms = set(terms)
+            response['terms'] = terms
         response["search-time"] = perf_counter() - start_time
         return Response(response)
