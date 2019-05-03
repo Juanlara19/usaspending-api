@@ -207,13 +207,13 @@ class Command(BaseCommand):
                 printf({"msg": "All ETL processes completed execution with no error codes"})
                 break
 
-        if self.config["reload_all"]:
-            printf({"msg": "Closing old indices and adding aliases"})
-            swap_aliases(ES, self.config["index_name"])
+        # if self.config["reload_all"]:
+        #     printf({"msg": "Closing old indices and adding aliases"})
+        #     swap_aliases(ES, self.config["index_name"])
 
-        if self.config["snapshot"]:
-            printf({"msg": "Taking snapshot"})
-            take_snapshot(ES, self.config["index_name"], settings.ES_REPOSITORY)
+        # if self.config["snapshot"]:
+        #     printf({"msg": "Taking snapshot"})
+        #     take_snapshot(ES, self.config["index_name"], settings.ES_REPOSITORY)
 
 
 def set_config(copy_args, arg_parse_options):
