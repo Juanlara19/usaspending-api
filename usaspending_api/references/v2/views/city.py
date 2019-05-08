@@ -14,7 +14,7 @@ from usaspending_api.search.v2.elasticsearch_helper import preprocess
 
 logger = logging.getLogger("console")
 
-TRANSACTIONS_INDEX_ROOT = "{}*".format(settings.TRANSACTIONS_INDEX_ROOT)
+INDEX = "{}*".format(settings.TRANSACTIONS_INDEX_ROOT)
 
 
 class CityAutocompleteViewSet(APIDocumentationView):
@@ -27,7 +27,6 @@ class CityAutocompleteViewSet(APIDocumentationView):
         search_text = request.GET.get("search_text")
         limit = request.GET.get("limit", 10)
         method = request.GET.get("method", "wildcard")
-
 
         # query = {
         # "dis_max": {
@@ -50,35 +49,26 @@ class CityAutocompleteViewSet(APIDocumentationView):
             query = {
                 "_source": ["recipient_location_city_name", "pop_city_name"],
                 "size": limit,
-                "query": {"query_string": {
-                  "query":"{}*".format(search_text),
-                  "fields":["recipient_location_city_name", "pop_city_name"]
-                  }
-                },
-                "highlight": {
-                    "fields": {
-                        "recipient_location_city_name":{},
-                        "pop_city_name":{}
+                "query": {
+                    "query_string": {
+                        "query": "{}*".format(search_text),
+                        "fields": ["recipient_location_city_name", "pop_city_name"],
                     }
-                }
+                },
+                "highlight": {"fields": {"recipient_location_city_name": {}, "pop_city_name": {}}},
             }
         elif method == "fuzzy":
             query = {
                 "_source": ["recipient_location_city_name", "pop_city_name", "award_id"],
                 "size": limit,
                 "query": {
-                  "query_string": {
-                    "query":"{}~".format(search_text),
-                    "fields":["recipient_location_city_name", "pop_city_name"],
-                    "fuzzy_prefix_length" : 1
-                  }
-                },
-                "highlight": {
-                    "fields": {
-                        "recipient_location_city_name":{},
-                        "pop_city_name":{}
+                    "query_string": {
+                        "query": "{}~".format(search_text),
+                        "fields": ["recipient_location_city_name", "pop_city_name"],
+                        "fuzzy_prefix_length": 1,
                     }
-                }
+                },
+                "highlight": {"fields": {"recipient_location_city_name": {}, "pop_city_name": {}}},
             }
 
         # https://www.elastic.co/guide/en/elasticsearch/reference/6.1/search-suggesters-completion.html
@@ -113,15 +103,15 @@ class CityAutocompleteViewSet(APIDocumentationView):
 
         start_time = perf_counter()
 
-        hits = es_client_query(index="city-search-v1", body=query, retries=10)
+        hits = es_client_query(index=INDEX, body=query, retries=10)
         if hits:
             response["total-hits"] = hits["hits"]["total"]
             results = hits["hits"]["hits"]
             terms = []
             for result in results:
-                for matched_field, _ in result['highlight'].items():
+                for matched_field, _ in result["highlight"].items():
                     terms.append(result["_source"][matched_field])
             terms = set(terms)
-            response['terms'] = terms
+            response["terms"] = terms
         response["search-time"] = perf_counter() - start_time
         return Response(response)

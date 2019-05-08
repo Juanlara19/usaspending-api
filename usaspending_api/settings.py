@@ -32,7 +32,7 @@ API_SEARCH_MIN_DATE = '2007-10-01'  # Beginning of FY2008
 SECRET_KEY = get_random_string()
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -72,7 +72,7 @@ IDV_DOWNLOAD_README_FILE_PATH = os.path.join(BASE_DIR, "usaspending_api/data/idv
 ES_HOSTNAME = ""
 if not ES_HOSTNAME:
     ES_HOSTNAME = os.environ.get('ES_HOSTNAME')
-TRANSACTIONS_INDEX_ROOT = os.environ.get('ES_TRX_ROOT') or 'future-transactions'
+TRANSACTIONS_INDEX_ROOT = "prototype-city"
 ES_TIMEOUT = 30
 ES_REPOSITORY = ""
 
