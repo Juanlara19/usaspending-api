@@ -1,5 +1,6 @@
 from django.db.models import Q
 from usaspending_api.common.exceptions import InvalidParameterException
+from usaspending_api.common.elasticsearch.client import es_client_query
 
 
 def geocode_filter_locations(scope, values, use_matview=False):
@@ -25,8 +26,11 @@ def geocode_filter_locations(scope, values, use_matview=False):
 
         for state_zip_key, state_values in state_zip.items():
             if state_zip_key == "city":
-                print("==============================")
-                print(state_values)
+                all_ids = []
+                for value in state_values:
+                    ids = get_award_ids_by_city(value, scope)
+                    all_ids.extend(ids)
+                state_inner_qs = Q(**{"award_id"+"__in":all_ids})
             elif state_zip_key == 'zip':
                 state_inner_qs = Q(**{q_str.format(scope, 'zip5') + '__in': state_values})
             else:
@@ -134,3 +138,26 @@ def return_query_string(use_matview):
         country_code_col = 'location_country_code'
 
     return q_str, country_code_col
+
+def get_award_ids_by_city(city, scope):
+    scope = "recipient_location_city_name" if scope == "recipient_location" else "pop_city_name"
+    query = {
+                "_source": ["award_id"],
+                "size":10000,  #TODO: This may not be large enough, so look into "scroll API" for elastic search to batch ids
+                "query": {"query_string": {
+                  "query":"\""+city+"\""
+            ,
+                  "fields":[scope]
+                  }
+                },
+            }
+    hits = es_client_query(index="city-search-v1", body=query, retries=10)
+    if hits:
+        results = hits["hits"]["hits"]
+        ids = []
+        for result in results:
+            ids.append(result["_source"]["award_id"])
+        ids = set(ids)
+        return ids
+    else:
+        return []
